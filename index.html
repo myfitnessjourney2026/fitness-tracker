@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#101827">
+<title>90-Day Calisthenics Tracker</title>
+<style>
+:root{--bg:#0b1220;--card:#141f31;--card2:#1b2940;--text:#f4f7fb;--muted:#a8b4c7;--accent:#73e0b2;--line:#2a3a52}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#101d30,#080d17);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,sans-serif;padding:18px}
+.wrap{max-width:850px;margin:auto}.hero{padding:24px 20px;border-radius:24px;background:linear-gradient(130deg,#173d43,#26385e);border:1px solid #38556a}
+h1{font-size:clamp(26px,6vw,38px);margin:0 0 6px}.sub{color:#d1e6e5;margin:0}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-top:16px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}.muted{color:var(--muted)}label{font-size:14px;color:var(--muted)}input[type=date]{background:var(--card2);color:var(--text);border:1px solid var(--line);padding:10px;border-radius:10px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}.stat{background:var(--card2);padding:14px;border-radius:14px}.num{font-size:25px;font-weight:800;color:var(--accent)}.small{font-size:12px;color:var(--muted)}
+.bar{height:9px;background:#26354a;border-radius:20px;overflow:hidden;margin-top:8px}.fill{height:100%;background:linear-gradient(90deg,#53cba0,#b0f4ce);width:0;transition:width .2s}
+h2{font-size:19px;margin:0 0 12px}.exercise{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}.exercise:last-child{border:0}.exercise input{width:21px;height:21px;accent-color:#67d9a9;flex-shrink:0;margin-top:2px}.exercise strong{display:block}.exercise span{font-size:13px;color:var(--muted)}
+button,.btn{border:0;border-radius:11px;padding:11px 14px;font-weight:700;background:var(--accent);color:#10221c;cursor:pointer}.secondary{background:var(--card2);color:var(--text);border:1px solid var(--line)}select{background:var(--card2);color:var(--text);border:1px solid var(--line);padding:10px;border-radius:10px}
+.daytabs{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.daytabs button{padding:8px 11px}.daytabs button.active{outline:2px solid var(--accent);background:#294b49;color:white}
+.note{font-size:13px;color:var(--muted);line-height:1.5}.footer{padding:18px 4px;color:var(--muted);font-size:12px;text-align:center}
+@media(max-width:520px){body{padding:12px}.stats{grid-template-columns:1fr 1fr}.stats .stat:last-child{grid-column:span 2}}
+</style>
+</head>
+<body><main class="wrap">
+<section class="hero"><div class="small">YOUR FITNESS JOURNEY</div><h1>💪 90-Day Calisthenics Tracker</h1><p class="sub">Build consistency. Track every workout. Celebrate every win.</p></section>
+<section class="card">
+<div class="row"><div><label for="start">Challenge start date</label><br><input id="start" type="date"></div><div><label for="date">Workout date</label><br><input id="date" type="date"></div></div>
+<div class="stats">
+<div class="stat"><div class="small">TODAY</div><div class="num" id="todayPct">0%</div><div class="bar"><div class="fill" id="todayBar"></div></div></div>
+<div class="stat"><div class="small">THIS WEEK</div><div class="num" id="weekPct">0%</div><div class="bar"><div class="fill" id="weekBar"></div></div></div>
+<div class="stat"><div class="small">THIS MONTH</div><div class="num" id="monthPct">0%</div><div class="bar"><div class="fill" id="monthBar"></div></div></div>
+</div>
+<p class="note" id="phaseText">Day 1 of 90 · Foundation phase</p>
+</section>
+<section class="card">
+<div class="row"><h2 id="dayTitle">Today's workout</h2><select id="phase"><option value="1">Days 1–30 · Foundation</option><option value="2">Days 31–60 · Building</option><option value="3">Days 61–90 · Advanced</option></select></div>
+<div class="daytabs" id="daytabs"></div>
+<div id="workout"></div>
+<div class="row" style="margin-top:14px"><button id="reset" class="secondary">Reset this day</button><button id="complete">Mark all complete</button></div>
+</section>
+<section class="card"><h2>Progress summary</h2><div class="stats">
+<div class="stat"><div class="small">DAYS WITH ACTIVITY</div><div class="num" id="daysTracked">0</div></div>
+<div class="stat"><div class="small">FULLY COMPLETED DAYS</div><div class="num" id="daysDone">0</div></div>
+<div class="stat"><div class="small">EXERCISES CHECKED</div><div class="num" id="checks">0</div></div></div>
+<p class="note">Your checkmarks are saved in this browser on this device. Use Export backup to save a copy before changing phones or browsers.</p>
+<div class="row"><button class="secondary" id="export">Export backup</button><label class="btn secondary" for="importFile">Import backup</label><input id="importFile" type="file" accept="application/json" hidden></div>
+</section>
+<section class="card"><h2>Training reminder</h2><p class="note">Warm up for 5–10 minutes, use controlled form, rest when needed, and stop if you feel sharp pain. Increase reps gradually. Recovery and good food are part of progress too.</p></section>
+<div class="footer">90-Day Calisthenics Tracker · Progress is built one day at a time.</div>
+</main>
+<script>
+const plans={
+1:[
+["Push + Core",[["Push-ups","3 × 5–10"],["Knee Push-ups","2 × 8–12"],["Plank","3 × 20 sec"]]],
+["Legs",[["Squats","3 × 15"],["Lunges","3 × 10 / leg"],["Calf Raises","3 × 20"]]],
+["Recovery",[["Walk","20 min"],["Stretching","5–10 min"]]],
+["Back + Biceps",[["Dead Hang","3 × 15 sec"],["Australian Rows","3 × 8"],["Superman Hold","3 × 20 sec"]]],
+["Full Body",[["Push-ups","3 × 8"],["Squats","3 × 15"],["Mountain Climbers","2 × 20"]]],
+["Core",[["Crunches","3 × 15"],["Leg Raises","3 × 8"],["Plank","3 × 30 sec"]]],
+["Rest",[]]],
+2:[
+["Push + Core",[["Push-ups","3 × 6–12"],["Diamond Push-ups","2 × 6–10"],["Pike Push-ups","3 × 5–8"],["Plank","3 × 25–40 sec"]]],
+["Legs",[["Squats","3 × 12–20"],["Reverse Lunges","3 × 8 / leg"],["Glute Bridges","3 × 12"],["Calf Raises","3 × 20"]]],
+["Back + Core",[["Pull-ups","3 × 5–8"],["Hanging Knee Raises","3 × 10–12"],["Plank","3 × 30 sec"]]],
+["Recovery / plan not supplied",[]],["Recovery / plan not supplied",[]],["Recovery / plan not supplied",[]],["Rest",[]]],
+3:[
+["Advanced Push",[["Decline Push-ups","3 × 12"],["Diamond Push-ups","3 × 12"],["Planche Lean","3 × 15 sec"]]],
+["Advanced Pull",[["Pull-ups","4 × 5–8"],["Chin-ups","3 × 6"],["Tuck Front Lever","3 × 5–10 sec"]]],
+["Advanced Legs",[["Bulgarian Split Squat","3 × 12 / leg"],["Jump Squats","3 × 12"],["Single Leg Calf Raise","3 × 15 / leg"]]],
+["Recovery",[["Walk","20 min"],["Yoga / Mobility","10 min"]]],
+["Skill Training",[["Handstand Practice","10 min"],["L-Sit","3 × 10 sec"],["Planche Lean","3 × 15 sec"]]],
+["Full Body",[["Push-ups","3 × 15"],["Pull-ups","3 × 6"],["Dips","3 × 8"],["Squats","3 × 20"],["Plank","3 × 60 sec"]]],
+["Rest",[]]]
+};
+const names=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+let data=JSON.parse(localStorage.getItem("calisthenics90")||"{}");
+const $=id=>document.getElementById(id);
+const iso=d=>{let x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,10)};
+$("date").value=iso(new Date());$("start").value=data.start||iso(new Date());
+if(data.start)$("start").value=data.start;
+let selectedDay=new Date().getDay();selectedDay=(selectedDay+6)%7;
+function key(){return $("date").value}
+function phaseForDate(){let a=new Date($("start").value+"T12:00:00"),b=new Date(key()+"T12:00:00");return Math.max(1,Math.min(3,Math.floor((b-a)/86400000/30)+1))}
+function save(){data.start=$("start").value;localStorage.setItem("calisthenics90",JSON.stringify(data));render()}
+function getList(p,d){return plans[p-1][d][1]}
+function render(){
+ const p=+$("phase").value, list=getList(p,selectedDay), dayName=names[selectedDay];
+ $("dayTitle").textContent=dayName+" · "+plans[p-1][selectedDay][0];
+ $("daytabs").innerHTML=names.map((n,i)=>`<button class="${i===selectedDay?'active':'secondary'}" data-day="${i}">${n.slice(0,3)}</button>`).join("");
+ document.querySelectorAll("[data-day]").forEach(b=>b.onclick=()=>{selectedDay=+b.dataset.day;render()});
+ const checks=data[key()]||{};
+ $("workout").innerHTML=list.length?list.map((e,i)=>`<label class="exercise"><input type="checkbox" data-check="${i}" ${checks[p+"-"+selectedDay+"-"+i]?'checked':''}><span><strong>${e[0]}</strong>${e[1]}</span></label>`).join(""):`<p class="note">${plans[p-1][selectedDay][0]==="Rest"?"Rest and recover. A rest day is part of the plan.":"This day's detailed exercises were not included in the supplied plan. Add your own routine only if appropriate."}</p>`;
+ document.querySelectorAll("[data-check]").forEach(c=>c.onchange=()=>{let k=key();data[k]=data[k]||{};data[k][p+"-"+selectedDay+"-"+c.dataset.check]=c.checked;save()});
+ $("reset").onclick=()=>{if(data[key()]){list.forEach((_,i)=>delete data[key()][p+"-"+selectedDay+"-"+i]);save()}};
+ $("complete").onclick=()=>{data[key()]=data[key()]||{};list.forEach((_,i)=>data[key()][p+"-"+selectedDay+"-"+i]=true);save()};
+ const total=list.length,done=list.filter((_,i)=>checks[p+"-"+selectedDay+"-"+i]).length;
+ $("todayPct").textContent=(total?Math.round(done/total*100):0)+"%";$("todayBar").style.width=(total?done/total*100:0)+"%";
+ const allDates=Object.keys(data).filter(k=>/^\d{4}-\d\d-\d\d$/.test(k));
+ const countBetween=(a,b)=>{let t=0,n=0;allDates.forEach(k=>{if(k>=a&&k<=b){let v=Object.values(data[k]||{});t+=v.filter(Boolean).length;n+=v.length}});return n?Math.round(t/n*100):0};
+ let now=new Date(key()+"T12:00:00"),monday=new Date(now);monday.setDate(now.getDate()-((now.getDay()+6)%7));let sunday=new Date(monday);sunday.setDate(monday.getDate()+6);
+ let first=new Date(now.getFullYear(),now.getMonth(),1),last=new Date(now.getFullYear(),now.getMonth()+1,0);
+ [["week",iso(monday),iso(sunday)],["month",iso(first),iso(last)]].forEach(([id,a,b])=>{$(id+"Pct").textContent=countBetween(a,b)+"%";$(id+"Bar").style.width=countBetween(a,b)+"%"});
+ let dayNum=Math.floor((now-new Date($("start").value+"T12:00:00"))/86400000)+1;
+ $("phaseText").textContent=`Day ${Math.max(1,dayNum)} of 90 · ${dayNum<=30?"Foundation":dayNum<=60?"Building":"Advanced"} phase`;
+ let checksTotal=0,tracked=0,full=0;
+ allDates.forEach(k=>{let vals=Object.values(data[k]||{});if(vals.length){tracked++;checksTotal+=vals.filter(Boolean).length;if(vals.length&&vals.every(Boolean))full++}});
+ $("daysTracked").textContent=tracked;$("daysDone").textContent=full;$("checks").textContent=checksTotal;
+}
+$("date").onchange=()=>{selectedDay=(new Date(key()+"T12:00:00").getDay()+6)%7;$("phase").value=phaseForDate();render()};
+$("start").onchange=()=>{data.start=$("start").value;save()};
+$("phase").onchange=render;
+$("export").onclick=()=>{let blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="calisthenics-progress-backup.json";a.click();URL.revokeObjectURL(a.href)};
+$("importFile").onchange=async e=>{try{let f=e.target.files[0];if(!f)return;let imported=JSON.parse(await f.text());data=imported;save();alert("Backup imported successfully.")}catch(err){alert("Could not read that backup file.")}};
+$("phase").value=phaseForDate();render();
+</script></body></html>
